@@ -145,12 +145,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Circular formation")
     parser.add_argument('-ac_ids', '--ac_ids', dest='ac_ids', type=str, default=None, help="init ac_ids for the sender")
     parser.add_argument('-s', '--s', dest='show_settings', action='store_true', help="show init ACs settings")
-    args = parser.parse_args()
 
-    ac_ids = args.ac_ids
-    block_id = 3
-    show_settings = args.show_settings
+    # CBF param arguments
+    parser.add_argument('-gamma', '--gamma', dest='gamma', type=float, default=0.4, help="CBF param: collision radius")
+    parser.add_argument('-col_rad', '--col_rad', dest='col_rad', type=float, default=2.0, help="CBF param: collision radius")
+    # ---
     
+    args = parser.parse_args()
+    
+    # Script parameters and setting
+    ac_ids = args.ac_ids
+    show_settings = args.show_settings
+
+    ke, kn = 1, 1
+    gamma = args.gamma
+    col_rad = args.col_rad
+    block_id = 3
+    # ---
 
     if ac_ids is not None:
         ac_ids = ac_ids.split(",")
@@ -163,32 +174,15 @@ if __name__ == '__main__':
             print(  " ----------------------- \n")
         
         # Send settings
+    
         sleep(0.6)
-        sender.send_setting(1, "ell_ke", 4)
-        sender.send_setting(1, "ell_kn", 2)
-        sender.send_setting(1, "sr_speed", 1)
-        sender.send_setting(1, "kp", 500)
-        sender.send_setting(1, "Gain", 1)
-        sender.send_setting(1, "Radius", 5)
-        sender.send_block(1, block_id)
-        
-        sleep(8)
-        sender.send_setting(2, "ell_ke", 4)
-        sender.send_setting(2, "ell_kn", 2)
-        sender.send_setting(2, "sr_speed", 2)
-        sender.send_setting(2, "kp", 500)
-        sender.send_setting(2, "Gain", 1)
-        sender.send_setting(2, "Radius", 5)
-        sender.send_block(2, block_id)
-
-        sleep(8)
-        sender.send_setting(3, "ell_ke", 4)
-        sender.send_setting(3, "ell_kn", 2)
-        sender.send_setting(3, "sr_speed", 3)
-        sender.send_setting(3, "kp", 500)
-        sender.send_setting(3, "Gain", 1)
-        sender.send_setting(3, "Radius", 5)
-        sender.send_block(3, block_id)
+        for ac_id in ac_ids:
+            sender.send_setting(ac_id, "ell_ke", ke)
+            sender.send_setting(ac_id, "ell_kn", kn)
+            sender.send_setting(ac_id, "CBF_radius", col_rad)
+            sender.send_setting(ac_id, "CBF_gamma", gamma)
+            sender.send_block(ac_id, block_id)
+            sleep(1)
 
         sender.stop()
     else:

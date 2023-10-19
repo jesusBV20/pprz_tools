@@ -20,8 +20,10 @@
 #
 
 
-'''
+'''\
 Script to generate an easy call for pprzlink_proxy.
+	-> python3 proxy_sim.py -ids 200,5,6 -pi 4247,4249,4251 -po 4246,4248,4250
+	-> python3 proxy_sim.py -ids 5,6 -pi 4249,4251 -po 4248,4250
 '''
 
 import os
@@ -46,18 +48,37 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description="Circular formation")
 	parser.add_argument('-v', '--v', dest='verbose', action='store_true', help="Pprz_proxy verbose argument")
+	parser.add_argument('-ids', '--ids', dest='ids', default=None, help="AC IDs")
+	parser.add_argument('-pi', '--pi', dest='in_ports', default=None, help="AC ports in")
+	parser.add_argument('-po', '--po', dest='out_ports', default=None, help="AC ports out")
 	args = parser.parse_args()
 
 	verbose = args.verbose
-
+	
+	ids = args.ids
+	in_ports = args.in_ports
+	out_ports = args.out_ports
+	
 	# Generate the pprzlink_proxy args
 	pprz_proxy_args = " "
-	for n in range(NUM_AGENTS):
-		ac_id = INIT_AC_ID + n
-		out_port = INIT_OUT_PORT + 2*n
-		in_port = INIT_IN_PORT + 2*n
+	if ids is not None and in_ports is not None and out_ports is not None:
+		ids = ids.split(",")
+		in_ports = in_ports.split(",")
+		out_ports = out_ports.split(",")
 
-		pprz_proxy_args += "--ac=" + str(ac_id) + ":" + str(out_port) + ":" + str(in_port) + " "
+		for i in range(len(ids)):
+			ac_id = ids[i]
+			out_port = out_ports[i]
+			in_port = in_ports[i]
+
+			pprz_proxy_args += "--ac=" + str(ac_id) + ":" + str(out_port) + ":" + str(in_port) + " "
+	else:
+		for n in range(NUM_AGENTS):
+			ac_id = INIT_AC_ID + n
+			out_port = INIT_OUT_PORT + 2*n
+			in_port = INIT_IN_PORT + 2*n
+
+			pprz_proxy_args += "--ac=" + str(ac_id) + ":" + str(out_port) + ":" + str(in_port) + " "
 
 	sleep(1)
 
