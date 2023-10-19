@@ -37,6 +37,7 @@ Rectangle {
         anchors.rightMargin: 5
 
         onButtonJsonClick: {
+            ACPanel.stop_ccf()
             ACPanel.read_json_file()
             ACPanel.ac_info_init()
             ACPanel.delta_info_init()

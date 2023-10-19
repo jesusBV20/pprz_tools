@@ -19,7 +19,7 @@
 # <http://www.gnu.org/licenses/>.
 
 """\
-PySide6 GUI app. for centralized circular formations (CCF) employing guidance vector fields (GVF)
+PyQt GUI app. for centralized circular formations (CCF) employing guidance vector fields (GVF)
 
 https://doc.qt.io/qtforpython-6/examples/example_corelib_threads.html
 https://doc.qt.io/qtforpython-6/examples/example_bluetooth_lowenergyscanner.html

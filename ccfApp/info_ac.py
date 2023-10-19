@@ -52,6 +52,10 @@ class AC:
         self._settings_ids = {"ell_a":None, "ell_b":None, "ell_ke":None, "ell_kn":None}
         self._settings = {"ell_a":None, "ell_b":None, "ell_ke":None, "ell_kn":None}
 
+        # System time of last received messages
+        self.time_last_nav = None
+        self.time_last_gvf = None
+
 class InfoAC(QObject):
 
     ac_changed = Signal()
@@ -69,6 +73,14 @@ class InfoAC(QObject):
         self.log_reporter = log_reporter
         
         self.look_setting_ids()
+
+    def set_initialized_nav(self, state):
+        self.ac.initialized_nav = state
+        self.ac_nav_state_changed.emit()
+
+    def set_initialized_gvf(self, state):
+        self.ac.initialized_gvf = state
+        self.ac_gvf_state_changed.emit()
 
     # ----- AC Info properties
 

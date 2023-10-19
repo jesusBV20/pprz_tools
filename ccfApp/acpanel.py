@@ -20,9 +20,9 @@
 
 import sys
 import json
+import time
 import numpy as np
 from os import path, getenv
-from time import sleep
 
 from info_ac import InfoAC
 from info_delta import InfoDelta
@@ -57,13 +57,16 @@ class ConfigCCF:
         self.delta_info_list = []
         self.ccfstate = False
 
+        # CCF controller parameters
         self.B = []
         self.k = 1.
         self.radius = 90.
         self.u_max = 20
 
+        # CCF output
         self.u_list = []
         self.sigma_list = []
+
 
 """\
 Main application class which connects the frontend with the backend.
@@ -211,7 +214,7 @@ class ACPanel(QObject):
     def commit_all_delta(self):
         for delta_info in self.conf.delta_info_list:
             delta_info.commit_delta() 
-        self.log_reporter.log("INFO: delta values submitted.")
+        self.log_reporter.log("INFO: delta values submitted -")
 
 
     # ----- Launching and stopping CCF
@@ -232,10 +235,10 @@ class ACPanel(QObject):
                 self.log_reporter.log("INFO: Waiting for check of AC-{:d} -".format(ac.id))
                 return False
             if (not ac.initialized_nav) or (not ac.initialized_gvf):
-                self.log_reporter.log("INFO: Waiting for NAV & GVF OK of AC-{:d} -".format(ac.id))
+                self.log_reporter.log("INFO: Waiting for NAV & GVF OK from AC-{:d} -".format(ac.id))
                 return False
         return True
-    
+
     # Run the previus checks before CCF launch
     @Slot()
     def try_launch_ccf(self):
@@ -265,6 +268,12 @@ class ACPanel(QObject):
         self.ccf_thread.start() # Go Go Go!
         self.log_reporter.log("INFO: CCF thread created -")
     
+    # STOP CCF!!
+    @Slot()
+    def stop_ccf(self):
+        if self.conf.ccfstate:
+            self.change_ccf_state()
+
     # Kill the CCF thread before closing
     @Slot()
     def kill_ccf_thread(self):
@@ -310,7 +319,7 @@ class ACPanel(QObject):
 
         for msg_id in self.conf.ac_info_list[i].ac._settings_ids.values():
             self.get_dl_value(ac_id, msg_id)
-            sleep(self._step)
+            time.sleep(self._step)
         self.log_reporter.log("INFO: DL_VALUEs requested -")
 
     @Slot(int)
@@ -356,6 +365,18 @@ class ACPanel(QObject):
                 ac.status = True
                 self.conf.ac_info_list[i].ac_status_changed.emit()
 
+    # Process the NAVIGATION PprzMsg
+    def navigation_cb(self, ac_id, msg):
+        if ac_id in self._ac_ids and msg.name == "NAVIGATION":
+            i = self._ac_ids.index(ac_id)
+            ac = self.conf.ac_info_list[i].ac
+
+            ac.XY[0] = float(msg.get_field(2))
+            ac.XY[1] = float(msg.get_field(3))
+
+            self.conf.ac_info_list[i].ac.time_last_nav = time.monotonic()
+            self.conf.ac_info_list[i].set_initialized_nav(True)
+
     # Process the GVF PprzMsg
     def gvf_cb(self, ac_id, msg):
         if ac_id in self._ac_ids and msg.name == "GVF":
@@ -370,17 +391,8 @@ class ACPanel(QObject):
                 ac._settings["ell_b"] = float(param[3])
                 ac.s = float(msg.get_field(2))
 
-                ac.initialized_gvf = True
-                self.conf.ac_info_list[i].ac_gvf_state_changed.emit()
-    
-    # Process the NAVIGATION PprzMsg
-    def navigation_cb(self, ac_id, msg):
-        if ac_id in self._ac_ids and msg.name == "NAVIGATION":
-            i = self._ac_ids.index(ac_id)
-            ac = self.conf.ac_info_list[i].ac
+                self.conf.ac_info_list[i].ac.time_last_gvf = time.monotonic()
+                self.conf.ac_info_list[i].set_initialized_gvf(True)
 
-            ac.XY[0] = float(msg.get_field(2))
-            ac.XY[1] = float(msg.get_field(3))
 
-            ac.initialized_nav = True
-            self.conf.ac_info_list[i].ac_nav_state_changed.emit()
+            

@@ -20,7 +20,7 @@
 # <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from time import sleep
+import time
 
 from PySide6.QtCore import QObject, Signal
 
@@ -35,14 +35,32 @@ class FormationControlWorker(QObject):
         super().__init__()
         self.conf = conf
         self.log_reporter = log_reporter
+        self.msg_timeout = 4 # secconds
 
+    # Main LOOP!!
     def run(self):
         while self.conf.ccfstate:
             self.circular_formation()
             self.progress.emit()
-            sleep(1) #TODO: better freq control
+            self.check_last_msgs_time()
+            time.sleep(1)
+
         self.log_reporter.log("INFO: CCF thread stopped -")
         self.finished.emit()
+
+    # Check for PprzMsg timeout and inform to the user
+    def check_last_msgs_time(self):
+        for ac_info in self.conf.ac_info_list:
+            dt_nav = time.monotonic() - ac_info.ac.time_last_nav
+            dt_gvf = time.monotonic() - ac_info.ac.time_last_gvf
+            if dt_nav > self.msg_timeout:
+                if ac_info.ac.initialized_nav:
+                    ac_info.set_initialized_nav(False)
+                    self.log_reporter.log("WARNING: NAV message timeout in AC-{:s} -".format(ac_info.idLabel))
+            if dt_gvf > self.msg_timeout:
+                if ac_info.ac.initialized_gvf:
+                    ac_info.set_initialized_gvf(False)
+                    self.log_reporter.log("WARNING: GVF message timeout in AC-{:s} -".format(ac_info.idLabel))
 
     '''\
     Circular Formation Control algorithm
@@ -89,5 +107,3 @@ class FormationControlWorker(QObject):
 
         u = - ac_info_list[0].ac.s * self.conf.k *  self.conf.B.dot(error_sigma)
         self.conf.u_list = np.clip(u, -self.conf.u_max, self.conf.u_max)
-
-        # SEND RADIUS SETTING MSGs
