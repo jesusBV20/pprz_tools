@@ -1,0 +1,10 @@
+module CCF_ControlPanel
+typeinfo controlpanel.qmltypes
+Main 1.0 Main.qml
+Aircrafts 1.0 Aircrafts.qml
+Menu 1.0 Menu.qml
+ACView 1.0 ACView.qml
+DeltaView 1.0 DeltaView.qml
+ButtonAnim 1.0 ButtonAnim.qml
+EntryInfo 1.0 EntryInfo.qml
+EntrySetting 1.0 EntrySetting.qml
