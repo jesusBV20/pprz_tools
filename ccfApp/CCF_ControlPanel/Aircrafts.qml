@@ -74,7 +74,7 @@ Rectangle {
     DeltaView {
         id: deltaView
 
-        width: 200
+        width: 300
         anchors.right: parent.right
         anchors.top: menu.bottom
         anchors.bottom: parent.bottom

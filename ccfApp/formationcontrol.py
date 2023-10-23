@@ -68,7 +68,7 @@ class FormationControlWorker(QObject):
     def circular_formation(self):
         ac_info_list = self.conf.ac_info_list
         delta_info_list = self.conf.delta_info_list
-        self.conf.sigma_list = np.zeros(len(self.conf.ac_info_list))
+        sigma_list = np.zeros(len(self.conf.ac_info_list))
 
         # Compute the inter-vehicle errors
         i = 0
@@ -76,9 +76,8 @@ class FormationControlWorker(QObject):
             ac = ac_info.ac
 
             # Compute the inter-vehicle errors
-            ac.sigma = np.arctan2(ac.XY[1]-ac.XYc[1], ac.XY[0]-ac.XYc[0])
-            self.conf.sigma_list[i] = ac.sigma
-
+            sigma_list[i] =  np.arctan2(ac.XY[1]-ac.XYc[1], ac.XY[0]-ac.XYc[0])
+            
             i = i + 1
 
         # Build delta_desired vector
@@ -90,7 +89,7 @@ class FormationControlWorker(QObject):
 
             i = i + 1
 
-        inter_sigma = self.conf.B.transpose().dot(self.conf.sigma_list)
+        inter_sigma = self.conf.B.transpose().dot(sigma_list)
         error_sigma = inter_sigma - delta_desired
 
         if np.size(error_sigma) > 1:
@@ -106,4 +105,14 @@ class FormationControlWorker(QObject):
                 error_sigma = error_sigma + 2*np.pi
 
         u = - ac_info_list[0].ac.s * self.conf.k *  self.conf.B.dot(error_sigma)
+
+        # Return
         self.conf.u_list = np.clip(u, -self.conf.u_max, self.conf.u_max)
+
+        i = 0
+        for delta_info in delta_info_list:
+            delta_info._error = error_sigma[i]*180/np.pi
+            delta_info.error_updated.emit()
+            i = i + 1
+
+        

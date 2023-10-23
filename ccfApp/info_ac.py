@@ -42,7 +42,7 @@ class AC:
         self.XY = np.zeros(2)
         self.XYc = np.zeros(2)
         self.s = 1
-        self.sigma = 0
+        self.error = None
 
         self.initialized_gvf = False
         self.initialized_nav = False
@@ -61,6 +61,7 @@ class InfoAC(QObject):
     ac_changed = Signal()
     ac_status_changed = Signal()
     ac_info_updated = Signal()
+    ac_error_updated = Signal()
     ac_settings_updated = Signal()
     ac_nav_state_changed = Signal()
     ac_gvf_state_changed = Signal()

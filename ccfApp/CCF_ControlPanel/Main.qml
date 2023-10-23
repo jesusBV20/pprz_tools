@@ -22,7 +22,7 @@ import QtQuick.Layouts
 Window {
     id: main
 
-    width: 700
+    width: 755
     height: 500
     visible: true
     title: "Centralized Circular Formation"

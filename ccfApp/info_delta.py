@@ -26,6 +26,8 @@ class InfoDelta(QObject):
     buffer_changed = Signal()
     id_from_changed = Signal()
     id_to_changed = Signal()
+    buffered_flag_changed = Signal()
+    error_updated = Signal()
 
     def __init__(self, value, id_from, id_to) -> None:
         super().__init__()
@@ -33,8 +35,12 @@ class InfoDelta(QObject):
         self._buffer = value
         self._id_from = id_from
         self._id_to = id_to
+        self._buffered_flag = False
+        self._error = None
+
 
     # ----- Indo Delta properties
+
 
     @Property(float, notify=value_changed)
     def value(self):
@@ -52,13 +58,37 @@ class InfoDelta(QObject):
     def id_to(self):
         return "{:03d}".format(self._id_to)
     
+    @Property(bool, notify=buffered_flag_changed)
+    def buffered_flag(self):
+        return self._buffered_flag
+
+    @Property(str, notify=error_updated)
+    def error(self):
+        if self._error is None:
+            return "-"
+        else:
+            return "{:.1f}".format(self._error)
+        
+    # ----- Indo Delta property setters
+
+    
     @value_buffer.setter
     def value_buffer(self, value):
         self._buffer = value
         self.buffer_changed.emit()
 
+    @buffered_flag.setter
+    def buffered_flag(self, value):
+        self._buffered_flag = value
+        self.buffered_flag_changed.emit()
+
+
     # ---- Commit buffered delta value
+
+
     @Slot()
     def commit_delta(self):
         self._value = self._buffer
         self.value_changed.emit()
+        self._buffered_flag = False
+        self.buffered_flag_changed.emit()

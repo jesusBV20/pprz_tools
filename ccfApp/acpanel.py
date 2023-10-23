@@ -65,7 +65,6 @@ class ConfigCCF:
 
         # CCF output
         self.u_list = []
-        self.sigma_list = []
 
 
 """\

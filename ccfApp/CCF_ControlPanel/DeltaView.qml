@@ -31,19 +31,19 @@ Item {
         border.color: "black"
         color: "lightgray"
 
-        ColumnLayout {
+        RowLayout {
             id: ccfsetttingLayout
-            height: 80
+            height: 40
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.leftMargin: 40
+            anchors.leftMargin: 10
 
             EntrySetting {
                 id: kSetting
 
                 paramText: "k_ccf"
-                textWidth: 60
+                textWidth: 50
 
                 decimals: 1
                 from: 0
@@ -59,7 +59,7 @@ Item {
                 id: uSetting
 
                 paramText: "u_max"
-                textWidth: 60
+                textWidth: 50
                 maxDigits: 6
 
                 decimals: 1
@@ -129,7 +129,7 @@ Item {
 
                     text: "\u03B4"
                     font.pointSize: 12
-                    color: "black"
+                    color: (box.modelData.buffered_flag) ? "darkred" : "black"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -151,8 +151,22 @@ Item {
                     value: box.modelData.value  
 
                     onSettingUpdate: {
-                        box.modelData.value_buffer  = deltaSetting.value
+                        box.modelData.value_buffer = deltaSetting.value
+                        box.modelData.buffered_flag = true
                     }
+                }
+
+                EntryInfo {
+                    id: errorInfo
+                    anchors.left: deltaSetting.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.leftMargin: 10
+
+                    infoText: "error"
+                    infoValue: box.modelData.error
+                    maxDigits: 5
+                    buttonTextColor: "black"
                 }
             }
         }
