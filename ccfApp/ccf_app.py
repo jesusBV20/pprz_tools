@@ -21,10 +21,9 @@
 """\
 PyQt GUI app. for centralized circular formations (CCF) employing guidance vector fields (GVF)
 
-https://doc.qt.io/qtforpython-6/examples/example_corelib_threads.html
-https://doc.qt.io/qtforpython-6/examples/example_bluetooth_lowenergyscanner.html
-https://doc.qt.io/qt-6/qtquickcontrols-customize.html#customizing-slider
-https://realpython.com/python-pyqt-qthread/
+>>> from pathlib import Path
+>>> hex_content = Path('icon.png').read_bytes()
+>>> Path('icon.py').write_text(f'icon = {hex_content}')
 """
 
 import sys
@@ -39,14 +38,13 @@ from acpanel import ACPanel
 def gen_app(name):
     app = QGuiApplication(sys.argv)
     QCoreApplication.setApplicationName(name)
-    app.setWindowIcon(QIcon("CCF_ControlPanel/assets/appIcon.png"))
     return app
 
 def run_qml(app):
     engine = QQmlApplicationEngine()
     engine.addImportPath(Path(__file__).parent)
-    engine.loadFromModule("CCF_ControlPanel", "Main")
-    app.setWindowIcon(QIcon("CCF_ControlPanel/assets/app_icon.png"))
+    engine.loadFromModule("control_panel", "Main")
+    app.setWindowIcon(QIcon("penguin_icon_ccf.png"))
 
     if not engine.rootObjects():
         sys.exit(-1)

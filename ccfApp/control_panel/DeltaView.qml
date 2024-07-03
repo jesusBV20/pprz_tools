@@ -111,7 +111,7 @@ Item {
                 id: box
                 width: list.width
                 height: 30
-                color: "gray"
+                color: (box.modelData.buffered_flag) ? "#9c6d6d" : "gray"
                 border.width: 1
                 border.color: "black"
                 
@@ -129,7 +129,7 @@ Item {
 
                     text: "\u03B4"
                     font.pointSize: 12
-                    color: (box.modelData.buffered_flag) ? "darkred" : "black"
+                    color: "black"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }

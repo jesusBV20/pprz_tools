@@ -1,4 +1,4 @@
-module CCF_ControlPanel
+module control_panel
 typeinfo controlpanel.qmltypes
 Main 1.0 Main.qml
 Aircrafts 1.0 Aircrafts.qml

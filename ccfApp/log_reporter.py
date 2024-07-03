@@ -20,7 +20,6 @@
 # <http://www.gnu.org/licenses/>.
 
 from PySide6.QtCore import QObject, Signal, Property, Slot
-from PySide6.QtQml import QmlElement, QmlSingleton
 
 class LogReporter(QObject):
     

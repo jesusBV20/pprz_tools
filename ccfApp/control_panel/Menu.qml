@@ -19,6 +19,7 @@
 import QtQuick
 import QtQuick.Layouts 
 import QtQuick.Controls
+import QtQuick.Dialogs
 
 Item {
     id: menu
@@ -52,7 +53,20 @@ Item {
             }
 
             ButtonAnim {
-                id: jsonButton
+                id: loadButton
+                buttonText: "Select"
+                
+                buttonColor: "#525252"
+                buttonWidth: 80
+                buttonHeight: menuHeight * 0.55
+                
+                onButtonClick: {
+                    onClicked: fileDialog.open()
+                }
+            }
+
+            ButtonAnim {
+                id: selectButton
                 buttonText: "Load"
                 
                 buttonColor: "#525252"
@@ -82,6 +96,19 @@ Item {
             menu.buttonLaunchClick()
             buttonText: (ACPanel.ccfstate) ? "Stop CCF" : "Launch CCF"
             buttonTextColor: (ACPanel.ccfstate) ? "green" : "red"
+        }
+    }
+
+    FileDialog {
+        id: fileDialog
+        currentFolder: Qt.resolvedUrl(ACPanel.json_main_folder)
+        onAccepted: {
+            var path = fileDialog.selectedFile.toString();
+
+            // remove prefix "file:///" "qrc:///" "http:///"
+            path = path.replace(/^(file:\/{2})|(qrc:\/{1})|(http:\/{1})/,"");
+
+            ACPanel.json_path = path
         }
     }
 }

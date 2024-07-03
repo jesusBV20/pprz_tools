@@ -29,24 +29,27 @@ from info_delta import InfoDelta
 from formationcontrol import FormationControlWorker
 from log_reporter import LogReporter
 
-from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer, QMetaObject, Qt, QThread
+from PySide6.QtCore import QObject, Property, Signal, Slot, QThread
 from PySide6.QtQml import QmlElement, QmlSingleton
 
-QML_IMPORT_NAME = "CCF_ControlPanel"
+QML_IMPORT_NAME = "control_panel"
 QML_IMPORT_MAJOR_VERSION = 1
 
-# --- PprzLink
-PPRZ_HOME = getenv("PAPARAZZI_HOME", path.normpath(path.join(path.dirname(path.abspath(__file__)), '../../../../')))
-PPRZ_SRC = getenv("PAPARAZZI_SRC", path.normpath(path.join(path.dirname(path.abspath(__file__)), '../../../../')))
+MAIN_PATH = path.dirname(__file__)
+JSON_FOLDER = path.join(MAIN_PATH, "formation")
+
+PPRZ_HOME = getenv("PAPARAZZI_HOME")
+PPRZ_SRC = getenv("PAPARAZZI_SRC")
+
+sys.path.append(MAIN_PATH)
 sys.path.append(PPRZ_HOME + "/var/lib/python/")
 sys.path.append(PPRZ_SRC + "/sw/lib/python")
 
+# --- PprzLink
 from pprzlink.ivy import IvyMessagesInterface
 from pprzlink.message import PprzMessage
 from settings_xml_parse import PaparazziACSettings
 # ---
-
-JSON_FOLDER = "formation"
 
 """\
 This class will globally store the main configuration parameters.
@@ -58,13 +61,13 @@ class ConfigCCF:
         self.ccfstate = False
 
         # CCF controller parameters
-        self.B = []
+        self.B = np.array([])
         self.k = 1.
         self.radius = 90.
         self.u_max = 20
 
         # CCF output
-        self.u_list = []
+        self.u_list = np.array([])
 
 
 """\
@@ -88,9 +91,11 @@ class ACPanel(QObject):
         super().__init__()
         # Common config (ACPanel + CCF worker)
         self.conf = ConfigCCF()
+        self._json_file = "granada_two_aircraft.json"
+        self._json_path = path.join(JSON_FOLDER, self._json_file)
 
         # ACPanel variables
-        self._json_file = "granada_two_aircraft.json"
+        self.json_file = "granada_two_aircraft.json"
         self._ac_ids = []
         self._delta_list = [] # in deg!!
 
@@ -100,7 +105,8 @@ class ACPanel(QObject):
             self.interface = IvyMessagesInterface("CCF Application")
             self.interface.subscribe(self.dl_values_cb, PprzMessage("telemetry", "DL_VALUE"))
             self.interface.subscribe(self.gvf_cb, PprzMessage("telemetry", "GVF"))
-            self.interface.subscribe(self.navigation_cb, PprzMessage("telemetry", "NAVIGATION"))
+            self.interface.subscribe(self.navigation_cb, PprzMessage("telemetry", "NAVIGATION")) # fixedwing
+            self.interface.subscribe(self.rotorcraft_fp_cb, PprzMessage("telemetry", "ROTORCRAFT_FP")) # rover/rotorcraft
         except:
             print("fail")
         
@@ -114,10 +120,17 @@ class ACPanel(QObject):
         
     # ----- AC Panel properties
 
-
+    @Property(str, constant=True)
+    def json_main_folder(self):
+        return JSON_FOLDER
+    
     @Property(str, notify=json_file_changed)
     def json_file(self):
         return self._json_file
+    
+    @Property(str, notify=json_file_changed)
+    def json_path(self):
+        return self._json_path
     
     @Property("QVariant", notify=ac_info_updated)
     def ac_info_list(self):
@@ -150,6 +163,13 @@ class ACPanel(QObject):
     @json_file.setter
     def json_file(self, value):
         self._json_file = value
+        self._json_path = path.join(JSON_FOLDER, self._json_file)
+        self.json_file_changed.emit()
+
+    @json_path.setter
+    def json_path(self, value):
+        self._json_path = value
+        self._json_file = path.split(self._json_path)[-1]
         self.json_file_changed.emit()
 
     @k_ccf.setter
@@ -171,9 +191,8 @@ class ACPanel(QObject):
 
     @Slot()
     def read_json_file(self):
-        file_path = path.join(JSON_FOLDER, self._json_file)
         try:
-            with open(file_path, 'r') as f:
+            with open(self._json_path, 'r') as f:
                 config = json.load(f) 
 
                 self._ac_ids = config['ids']
@@ -181,10 +200,12 @@ class ACPanel(QObject):
                 self.conf.B = np.array(config['topology'])
                 self.conf.k = config['gain']
                 self.conf.radius = config['desired_stationary_radius_meters']
+                self.conf.u_max = 0.2 * self.conf.radius
             self.kccf_changed.emit()
+            self.umax_changed.emit()
             self.log_reporter.log("INFO: {:s} successfully loaded -".format(self._json_file))
         except:
-            self.log_reporter.log("ERROR: error while loading {:s} -".format(self._json_file))
+            self.log_reporter.log("ERROR: error while loading {:s} -".format(self._json_path))
 
     @Slot()
     def ac_info_init(self):
@@ -372,6 +393,18 @@ class ACPanel(QObject):
 
             ac.XY[0] = float(msg.get_field(2))
             ac.XY[1] = float(msg.get_field(3))
+
+            self.conf.ac_info_list[i].ac.time_last_nav = time.monotonic()
+            self.conf.ac_info_list[i].set_initialized_nav(True)
+
+    # 
+    def rotorcraft_fp_cb(self, ac_id, msg):
+        if ac_id in self._ac_ids and msg.name == "ROTORCRAFT_FP":
+            i = self._ac_ids.index(ac_id)
+            ac = self.conf.ac_info_list[i].ac
+            
+            ac.XY[0] = float(msg.get_field(0))/256
+            ac.XY[1] = float(msg.get_field(1))/256
 
             self.conf.ac_info_list[i].ac.time_last_nav = time.monotonic()
             self.conf.ac_info_list[i].set_initialized_nav(True)

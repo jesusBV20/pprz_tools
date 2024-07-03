@@ -26,7 +26,7 @@ Window {
     height: 500
     visible: true
     title: "Centralized Circular Formation"
-
+    
     Aircrafts {
         
     }
