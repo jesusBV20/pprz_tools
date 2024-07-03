@@ -149,6 +149,7 @@ if __name__ == '__main__':
     # CBF param arguments
     parser.add_argument('-gamma', '--gamma', dest='gamma', type=float, default=0.4, help="CBF param: collision radius")
     parser.add_argument('-col_rad', '--col_rad', dest='col_rad', type=float, default=2.0, help="CBF param: collision radius")
+    parser.add_argument('-block_id', '--block_id', dest='block_id', type=int, default=None, help="Block ID")
     # ---
 
     args = parser.parse_args()
@@ -160,10 +161,14 @@ if __name__ == '__main__':
     ke, kn = 1, 1
     gamma = args.gamma
     col_rad = args.col_rad
-    block_id = 3
+    
+    if args.block_id is None:
+    	block_id = 5
+    else:
+    	block_id = args.block_id
 
     kp = 500
-    speeds = [1, 2, 3]
+    speeds = [2, 2, 2]
     # ---
     
     if ac_ids is not None:

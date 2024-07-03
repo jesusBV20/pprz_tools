@@ -22,8 +22,8 @@
 
 '''\
 Script to generate an easy call for pprzlink_proxy.
-	-> python3 proxy_sim.py -ids 200,5,6 -pi 4247,4249,4251 -po 4246,4248,4250
 	-> python3 proxy_sim.py -ids 5,6 -pi 4249,4251 -po 4248,4250
+	-> python3 proxy_sim.py -ids 5,6,200 -pi 4248,4250,4252 -po 4249,4251,4253
 '''
 
 import os
@@ -46,7 +46,13 @@ NUM_AGENTS = 3
 if __name__ == '__main__':
 	import argparse
 
-	parser = argparse.ArgumentParser(description="Circular formation")
+	parser = argparse.ArgumentParser(
+		description= '''IVY bus proxy for paparazzi multi-robot simulations (it calls pprzlink_proxy)\n
+			Examples:
+			\t-> python3 proxy_sim.py -ids 1,2,3 -pi 4245,4247,4249 -po 4244,4246,4248
+			\t-> python3 proxy_sim.py -ids 5,6 -pi 4249,4251 -po 4248,4250
+			\t-> python3 proxy_sim.py -ids 5,6,200 -pi 4248,4250,4252 -po 4249,4251,4253
+			''')
 	parser.add_argument('-v', '--v', dest='verbose', action='store_true', help="Pprz_proxy verbose argument")
 	parser.add_argument('-ids', '--ids', dest='ids', default=None, help="AC IDs")
 	parser.add_argument('-pi', '--pi', dest='in_ports', default=None, help="AC ports in")

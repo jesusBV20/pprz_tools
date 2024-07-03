@@ -25,7 +25,12 @@ datalink messages. It has been designed to initialise the GVF multiple
 agents nps simulations.
 
 Usage example: 
-    ./send_multisim_settings.py -ad_ids 5,6,7 -v
+    ./send_multisim_settings.py -ad_ids 1,2,3 -gamma 0.04 -col_rad 2 -ke 1 -kn 1 -block_id 3
+    ./send_multisim_settings.py -ad_ids 5,6 -gamma 0.001 -col_rad 2 -s
+    ./send_settings_realMission.py -ac_ids 5,6 -gamma 0.000001 -col_rad 20
+    ./send_settings_realMission.py -ac_ids 5,6 -gamma 0.000001 -col_rad 10
+    ./send_settings_realMission.py -ac_ids 5,6,200 -gamma 0.001 -col_rad 10
+
 '''
 
 import sys
@@ -147,8 +152,11 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--s', dest='show_settings', action='store_true', help="show init ACs settings")
 
     # CBF param arguments
-    parser.add_argument('-gamma', '--gamma', dest='gamma', type=float, default=0.4, help="CBF param: collision radius")
+    parser.add_argument('-gamma', '--gamma', dest='gamma', type=float, default=0.45, help="CBF param: collision radius")
     parser.add_argument('-col_rad', '--col_rad', dest='col_rad', type=float, default=2.0, help="CBF param: collision radius")
+    parser.add_argument('-ke', '--ke', dest='ke', type=float, default=None, help="GVF param: ke")
+    parser.add_argument('-kn', '--kn', dest='kn', type=float, default=None, help="GVF param: ke")
+    parser.add_argument('-block_id', '--block_id', dest='block_id', type=int, default=None, help="Block ID")
     # ---
     
     args = parser.parse_args()
@@ -157,10 +165,10 @@ if __name__ == '__main__':
     ac_ids = args.ac_ids
     show_settings = args.show_settings
 
-    ke, kn = 1, 1
+    ke, kn = args.ke, args.kn
     gamma = args.gamma
     col_rad = args.col_rad
-    block_id = 3
+    block_id = args.block_id
     # ---
 
     if ac_ids is not None:
@@ -177,11 +185,16 @@ if __name__ == '__main__':
     
         sleep(0.6)
         for ac_id in ac_ids:
-            sender.send_setting(ac_id, "ell_ke", ke)
-            sender.send_setting(ac_id, "ell_kn", kn)
+            if ke != None:
+                sender.send_setting(ac_id, "ell_ke", ke)
+            if kn != None:
+                sender.send_setting(ac_id, "ell_kn", kn)
+            if block_id != None:
+                sender.send_block(ac_id, block_id)
+                #sender.send_setting(ac_id, "CBF_status", 1)
+                
             sender.send_setting(ac_id, "CBF_radius", col_rad)
             sender.send_setting(ac_id, "CBF_gamma", gamma)
-            sender.send_block(ac_id, block_id)
             sleep(1)
 
         sender.stop()
