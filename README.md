@@ -1,3 +1,3 @@
-# Paparazzi UAS Tools _
+# Paparazzi UAS Tools
 
-This repository contains Python scripts and applications for testing our GNC algorithms in Paparazzi UAS.
+This repository contains Python scripts and applications designed to support testing and evaluation of GNC algorithms within the Paparazzi UAS framework.
