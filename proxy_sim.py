@@ -22,7 +22,7 @@
 
 '''\
 Script to generate an easy call for pprzlink_proxy.
-	-> python3 proxy_sim.py -ids 5,6 -pi 4249,4251 -po 4248,4250
+	-> python3 proxy_sim.py -ids 5,6 -pi 4248,4250 -po 4249,4251
 	-> python3 proxy_sim.py -ids 5,6,200 -pi 4248,4250,4252 -po 4249,4251,4253
 '''
 
