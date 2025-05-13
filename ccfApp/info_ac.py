@@ -159,20 +159,26 @@ class InfoAC(QObject):
     Slot()
     def look_setting_ids(self):
         settings = PaparazziACSettings(self.ac.id)
-        for setting_ in self.ac._settings_ids.keys():
+
+        # Check if both GVF and GVF_IK groups are loaded (which can cause conflicts)
+        for group in settings.groups:
+            if group.name == "GVF_IK":
+                self.log_reporter.log(
+                    f"ERROR: AC-{self.idLabel} GVF and GVF_IK are loaded at the same time, "
+                    "which may lead to errors since they share setting names."
+                )
+                return    
+            # TODO: Support nested groups in settings_xml_parse.py to differentiate
+            # between modules with the same setting names (e.g., GVF and GVF_IK).
+
+        for setting_key in self.ac._settings_ids.keys():
                 try:
-                    index = settings.name_lookup[setting_].index
-                    if setting_ == 'ell_a':
-                        self.ac._settings_ids["ell_a"] = index
-                    if setting_ == 'ell_b':
-                        self.ac._settings_ids["ell_b"] = index
-                    if setting_ == 'ell_ke':
-                        self.ac._settings_ids["ell_ke"] = index
-                    if setting_ == 'ell_kn':
-                        self.ac._settings_ids["ell_kn"] = index
+                    index = settings.name_lookup[setting_key].index
+                    if setting_key in ('ell_a', 'ell_b', 'ell_ke', 'ell_kn'):
+                        self.ac._settings_ids[setting_key] = index
                 except Exception as e:
                     print(e)
-                    self.log_reporter.log("ERROR: AC-" + self.idLabel + " reported " + setting_ + \
+                    self.log_reporter.log("ERROR: AC-" + self.idLabel + " reported " + setting_key + \
                                           " setting not found. Have you forgotten to check gvf.xml for your settings? -")
     
     # Try to change de info checked flag

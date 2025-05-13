@@ -22,7 +22,7 @@ import sys
 import json
 import time
 import numpy as np
-from os import path, getenv
+from os import path, getenv, listdir
 
 from info_ac import InfoAC
 from info_delta import InfoDelta
@@ -91,11 +91,10 @@ class ACPanel(QObject):
         super().__init__()
         # Common config (ACPanel + CCF worker)
         self.conf = ConfigCCF()
-        self._json_file = "granada_two_aircraft.json"
-        self._json_path = path.join(JSON_FOLDER, self._json_file)
+        self.init_json_file()
 
         # ACPanel variables
-        self.json_file = "granada_two_aircraft.json"
+        self.json_file = self._json_file
         self._ac_ids = []
         self._delta_list = [] # in deg!!
 
@@ -117,7 +116,15 @@ class ACPanel(QObject):
         self.ccf_worker = None
         self.ccf_thread = None
 
-        
+    def init_json_file(self):
+        json_files = [f for f in listdir(JSON_FOLDER) if f.endswith('.json')]
+        if not json_files:
+            self._json_file = f"No .json files found in {JSON_FOLDER}"
+        else:
+            first_json_file = sorted(json_files)[0]
+            self._json_file = first_json_file
+            self._json_path = path.join(JSON_FOLDER, self._json_file)
+
     # ----- AC Panel properties
 
     @Property(str, constant=True)
